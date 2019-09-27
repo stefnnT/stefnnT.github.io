@@ -1,6 +1,6 @@
 # stefnnT.github.io
 
-##ALC 4.0
+#ALC 4.0
 
 This is a payment verification application built during Andela Learning Community Phase I.
 
