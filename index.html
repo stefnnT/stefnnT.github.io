@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" 
+          content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    
+    <title>Mini App</title>
+    
+    <style>
+      body {
+      margin: 0;
+      padding: 1em;
+    }
+
+    [data-cart-info],
+    [data-credit-card] {
+      transform: scale(0.78);
+      margin-left: -3.4em;
+    }
+
+    [data-cc-info] input:focus,
+    [data-cc-digits] input:focus {
+      outline: none;
+    }
+
+    .mdc-card__primary-action,
+    .mdc-card__primary-action:hover {
+      cursor: auto;
+      padding: 20px;
+      min-height: inherit;
+    }
+
+    [data-credit-card] [data-card-type] {
+      transition: width 1.5s;
+      margin-left: calc(100% - 130px);
+    }
+
+    [data-credit-card].is-visa {
+      background: linear-gradient(135deg, #622774 0%, #c53364 100%);
+    }
+
+    [data-credit-card].is-mastercard {
+      background: linear-gradient(135deg, #65799b 0%, #5e2563 100%);
+    }
+
+    .is-visa [data-card-type],
+    .is-mastercard [data-card-type] {
+      width: auto;
+    }
+
+    input.is-invalid,
+    .is-invalid input {
+      text-decoration: line-through;
+    }
+
+    ::placeholder {
+      color: #fff;
+    }
+      
+    /* Add Your CSS From Here */
+	body {
+		background: white;
+	}
+
+	[data-cart-info] span {
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	.material-icons {
+		font-size: 150px;
+	}
+
+	[data-credit-card] {
+		width: 435px;
+		min-height: 240px;
+		border-radius: 10px;
+		background: #5d6874;
+	}
+
+	[data-card-type] {
+		display: block;
+		width: 120px;
+		height: 60px;
+	}
+
+	[data-cc-digits] {
+		margin-top: 2em;
+	}
+
+	[data-cc-digits] input {
+		width: 20%;
+		color: white;
+		font-size: 2em;
+		line-height: 2em;
+		margin-right: 0.5em;
+		border: none;
+		background: none;
+	}
+
+	[data-cc-info] {
+		margin-top: 1em;
+	}
+
+	[data-cc-info] input {
+		color: white;
+		font-size: 1.2em;
+		border: none;
+		background: none;
+	}
+
+	[data-cc-info] input:nth-child(2) {
+		padding-right: 10px;
+		float: right;
+	}
+
+	[data-pay-btn] {
+		position: fixed;
+		width: 90%;
+		border: 1px solid;
+		bottom: 20px;
+	}
+
+    </style>
+  </head>
+  <body>
+    
+    <!-- your HTML goes here -->
+	<div data-cart-info>
+		<h4 class="mdc-typography--headline4">
+			<span class="material-icons">shopping_cart</span>
+			<span data-bill></span>
+		</h4>
+	</div>
+
+	<div data-credit-card class="mdc-card mdc-card--outlined">
+		<div class="mdc-card__primary-action">
+			<img data-card-type src="https://placehold.it/120x60.png?text=Card" />
+
+			<div data-cc-digits>
+				<input type="text" size="4" placeholder="----" />
+				<input type="text" size="4" placeholder="----" />
+				<input type="text" size="4" placeholder="----" />
+				<input type="text" size="4" placeholder="----" />
+			</div>
+
+			<div data-cc-info>
+				<input type="text" size="20" placeholder="Name Surname" />
+				<input type="text" size="6" placeholder="MM/YY" />
+			</div>
+		</div>
+	</div>
+
+	<button class="mdc-button" data-pay-btn>Pay Now</button>
+    
+    <script>
+      
+      const supportedCards = {
+        visa, mastercard
+      };
+
+      const countries = [
+        {
+          code: "US",
+          currency: "USD",
+          currencyName: '',
+          country: 'United States'
+        },
+        {
+          code: "NG",
+          currency: "NGN",
+          currencyName: '',
+          country: 'Nigeria'
+        },
+        {
+          code: 'KE',
+          currency: 'KES',
+          currencyName: '',
+          country: 'Kenya'
+        },
+        {
+          code: 'UG',
+          currency: 'UGX',
+          currencyName: '',
+          country: 'Uganda'
+        },
+        {
+          code: 'RW',
+          currency: 'RWF',
+          currencyName: '',
+          country: 'Rwanda'
+        },
+        {
+          code: 'TZ',
+          currency: 'TZS',
+          currencyName: '',
+          country: 'Tanzania'
+        },
+        {
+          code: 'ZA',
+          currency: 'ZAR',
+          currencyName: '',
+          country: 'South Africa'
+        },
+        {
+          code: 'CM',
+          currency: 'XAF',
+          currencyName: '',
+          country: 'Cameroon'
+        },
+        {
+          code: 'GH',
+          currency: 'GHS',
+          currencyName: '',
+          country: 'Ghana'
+        }
+      ];
+
+      const billHype = () => {
+        const billDisplay = document.querySelector('.mdc-typography--headline4');
+        if (!billDisplay) return;
+
+        billDisplay.addEventListener('click', () => {
+          const billSpan = document.querySelector("[data-bill]");
+          if (billSpan &&
+            appState.bill &&
+            appState.billFormatted &&
+            appState.billFormatted === billSpan.textContent) {
+            window.speechSynthesis.speak(
+              new SpeechSynthesisUtterance(appState.billFormatted)
+            );
+          }
+        });
+      };
+
+	  const appState = {};
+
+	  const formatAsMoney = (amount, buyerCountry) => {
+		  const [country] = countries.filter(country => country.country.toLowerCase() === buyerCountry.toLowerCase());
+	
+		  if (country) {
+			  return amount.toLocaleString(`en-${country.code}`, {style: 'currency', currency: country.currency});
+		  };
+		  return amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'});
+	  };
+
+	  const flagIfInvalid = (field, isValid) => {
+		  isValid ? field.classList.remove('is-invalid') : field.classList.add('is-invalid');
+	  };
+
+	  const expiryDateFormatIsValid = field => {
+		  if (field.length == 4 || field.length == 5) {
+			  return /[1-9]|(0[1-9])|(1[0-2])\/([0-9][0-9])$/.test(field);
+		  }
+		  return false;
+	  }
+
+	  const detectCardType = first4Digits => {
+		  const cardTile = document.querySelector('[data-credit-card]');
+		  const imageTile = document.querySelector('[data-card-type]');
+		  let retValue;
+
+		  if (first4Digits[0] === 4) {
+			  cardTile.classList.add('is-visa');
+			  cardTile.classList.remove('is-mastercard');
+			  imageTile.src = supportedCards.visa;
+			  retValue = 'is-visa';
+		  } else if (first4Digits[0] === 5) {
+			  cardTile.classList.add('is-mastercard');
+			  cardTile.classList.remove('is-visa');
+			  imageTile.src = supportedCards.mastercard;
+			  retValue = 'is-mastercard';
+		  } else {
+			  cardTile.classList.remove('is-visa');
+			  cardTile.classList.remove('is-mastercard');
+		  }
+		  return retValue;
+	
+	  };
+
+	  const validateCardExpiryDate = () => {
+		  const target = document.querySelector('[data-cc-info] input:nth-child(2)');
+		  const currentDate = new Date();
+		  const cardDate = target.value.split('/')
+		  const cardMonth = parseInt(cardDate[0]);
+		  const cardYear = parseInt(cardDate[1]) + 2000;
+		  
+		  if (expiryDateFormatIsValid(target.value)) {
+			  if (cardYear > currentDate.getFullYear()) {
+				  flagIfInvalid(target, true)
+				  return true;
+			  } else if (cardMonth > currentDate.getMonth() && cardYear == currentDate.getFullYear()) {
+				  flagIfInvalid(target, true);
+				  return true;
+			  }
+		  }
+		  flagIfInvalid(target, false);
+		  return false;
+	  };
+
+	  const validateCardHolderName = () => {
+		  const target = document.querySelector('[data-cc-info] input:nth-child(1)');
+		  const regex = /^[a-zA-z]{3,}[\s][a-zA-Z]{3,}$/.test(target.value);
+		  flagIfInvalid(target, regex);
+		  return regex
+		  
+	  };
+
+	  const validateWithLuhn = digits => {
+		  let newDigits = digits;
+		  let sum;
+
+		  if (newDigits.length === 16) {
+			  for (let i = newDigits.length - 2; i >= 0; i -=2) {
+				  let temp = newDigits[i] * 2;
+				  temp > 9 ? newDigits[i] = temp - 9 : newDigits[i] = temp;
+			  }
+			  sum = newDigits.reduce((acc, currVal) => acc + currVal);
+		  }
+		  return (sum % 10 == 0);
+	  };
+
+	  const validateCardNumber = () => {
+		  let cardNumbers = appState.cardDigits;
+		  let checkValidity = document.querySelector('[data-cc-digits]');
+		  let numbers = '';
+		  cardNumbers.forEach(arr => {
+			  arr.forEach(n => {
+				  numbers += n;
+			  })
+		  });
+		  if (validateWithLuhn(numbers)) {
+			  flagIfInvalid(checkValidity, true);
+			  return true;
+		  } else {
+			  flagIfInvalid(checkValidity, false);
+			  return false
+		  }
+
+	  };
+
+	  const validatePayment = () => {
+		  validateCardNumber();
+		  validateCardHolderName();
+		  validateCardExpiryDate();
+	  };
+
+	  const smartInput = (event, fieldIndex, fields) => {
+		//   console.log(fields);
+		  const VALID_EVENTS_KEYS = ['Shift', 'Tab', 'Backspace', 'Delete',  'ArrowLeft', 'ArrowRight'];
+		  if (!VALID_EVENTS_KEYS.includes(event.key)) {
+			  if (fieldIndex < 4) {
+				  if (/\d/.test(parseInt(event.key))) {
+					  if (appState.cardDigits[fieldIndex] === undefined) {
+						  appState.cardDigits[fieldIndex] = [];
+					  }
+					  
+					  let {selectionStart, value} = event.target;
+					  appState.cardDigits[fieldIndex][selectionStart] = +event.key + event.target.value.substr(selectionStart + 1);
+					  console.log(event.target.value)
+					  event.target.value = event.target.value.substr(0, selectionStart) + event.key + value.substr(selectionStart + 1);
+					  //console.log(event.target.value);
+					  setTimeout(() =>{
+						  appState.cardDigits[fieldIndex] = event.target.value.split("").map((val, i) => (val >= '0' && val <= '9')? Number(val): Number(appState.cardDigits[fieldIndex][i]));
+						  if (fieldIndex < 3) {
+							  event.target.value = event.target.value.replace(/\d/g,'#');
+						  }
+					  }, 500);
+					  smartCursor(event, fieldIndex, fields);
+					if (fieldIndex == 0 && event.target.value.length >= 4) {
+						  let first4Digits = appState.cardDigits[0];
+						  detectCardType(first4Digits);
+					}
+				  } else {
+					  console.log('INVALID ENTRY');
+					  event.preventDefault();
+				  }
+			  } else if (fieldIndex === 4) {
+				  if (/[a-z]|\s/i.test(event.key)) {
+					  setTimeout(() => {
+						  smartCursor(event, fieldIndex, fields);
+					  } ,500);
+				  } else {
+					  event.preventDefault();
+				  }
+			  } else if (fieldIndex === 5) {
+				  if (/\d|\//.test(event.key)) {
+					  setTimeout(() => {
+						  smartCursor(event, fieldIndex, fields);
+					  }, 500);
+				  }
+			  }
+		  } else {
+			  if (event.key === 'Backspace') {
+				  if (appState.cardDigits[fieldIndex].length > 0) {
+					  appState.cardDigits[fieldIndex].splice(-1,1)
+				  }
+			  } else if (event.key === 'Delete') {
+				  if (appState.cardDigits[fieldIndex].length > 0) {
+					  appState.cardDigits[fieldIndex].splice(1,1)
+				  }
+			  }
+		  }
+	  };
+
+	  const uiCanInteract = () => {
+		  const firstCCInput = document.querySelector('[data-cc-digits] input:nth-child(1)');
+		  firstCCInput.focus();
+
+		  const button = document.querySelector('[data-pay-btn]');
+		  button.addEventListener('click', validatePayment);
+
+		  billHype();
+		  enableSmartTyping();
+
+	  };
+
+	  const smartCursor = (event, fieldIndex, fields) => {
+		  if (fieldIndex < fields.length - 1) {
+			  if (event.target.value.length === event.target.size) {
+				  setTimeout(() => {
+					  fields[fieldIndex+1].focus()
+				  }, 500)
+			  }
+		  }
+	  };
+
+	  const enableSmartTyping = () => {
+		  const arr = document.querySelectorAll('input');
+		  arr.forEach((field, index, fields) => {
+			  field.addEventListener('keyup', event => {
+				  smartCursor(event, index, fields);
+			  });
+			  field.addEventListener('keydown', event => {
+				  smartInput(event, index, fields);
+			  });
+		  });
+	  };
+
+	  const displayCartTotal = ({results}) => {
+		  const [data] = results;
+		  const {itemsInCart, buyerCountry} = data;
+
+		  appState.items = itemsInCart;
+		  appState.country = buyerCountry;
+		  appState.bill = itemsInCart.reduce((acc, cVal) => acc + (cVal.price * cVal.qty), 0);
+		  appState.billFormatted = formatAsMoney(appState.bill, appState.country);
+		  
+		  document.querySelector('[data-bill]').textContent = appState.billFormatted;
+		  
+		  appState.cardDigits = [];
+console.log(appState.cardDigits.length);
+		  uiCanInteract();
+		  
+	  };
+	
+	  const fetchBill = () => {
+        const apiHost = 'https://randomapi.com/api';
+		const apiKey = '006b08a801d82d0c9824dcfdfdfa3b3c';
+		const apiEndpoint = `${apiHost}/${apiKey}`;
+
+		fetch(apiEndpoint).then(response => response.json()).then(data => {
+			displayCartTotal(data);
+		}).catch(error => console.log(error));
+        //uiCanInteract()
+      };
+      
+      const startApp = () => {
+		  fetchBill();
+      };
+
+      startApp();
+    </script>
+  </body>
+</html>
